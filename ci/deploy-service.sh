@@ -31,16 +31,16 @@ echo "[v] Starting deployment for service ${SERVICE} version ${VERSION}"
 
 # Create or update service
 echo "[v] Checking if k8s service for ${SERVICE} exists..."
-kubectl get service ${SERVICE}-service --namespace=${NAMESPACE} 2>&1 >/dev/null
+minikube kubectl --  get service ${SERVICE}-service --namespace=${NAMESPACE} 2>&1 >/dev/null
 
 if [ $? -ne 0 ]
 then
   echo "[v] K8s service for ${SERVICE} doesn't exist.  Creating service..."
-  kubectl --namespace=${NAMESPACE} create -f ${SERVICES_PATH}/${SERVICE}.yaml
+  minikube kubectl --  --namespace=${NAMESPACE} create -f ${SERVICES_PATH}/${SERVICE}.yaml
 else
   echo "[v] K8s service for ${SERVICE} exists "
   # TODO - removing --force causes spec.clusterIP: Invalid value: "": field is immutable
-  kubectl --namespace=${NAMESPACE} replace -f ${SERVICES_PATH}/${SERVICE}.yaml --force
+  minikube kubectl --  --namespace=${NAMESPACE} replace -f ${SERVICES_PATH}/${SERVICE}.yaml --force
 fi
 
 [ ! -d ${DEPLOYMENT_CONFIG_PATH} ] && mkdir -p ${DEPLOYMENT_CONFIG_PATH}
@@ -49,17 +49,17 @@ echo "[v] Copying service ${SERVICE} yaml template to ${DEPLOYMENT_CONFIG_PATH}"
 cp ${DEPLOYMENTS_PATH}/${SERVICE}.yaml ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
 
 echo "[v] Modifing service ${SERVICE} yaml version to ${VERSION}"
-sed -i "s/VERSION/${VERSION}/g" ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
+sed -i -e "s/VERSION/${VERSION}/g" ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
 
 echo "[v] Checking if deployment for ${SERVICE} exists..."
-kubectl get deployment ${SERVICE}-deployment --namespace=${NAMESPACE} 2>&1 >/dev/null
+minikube kubectl -- get deployment ${SERVICE}-deployment --namespace=${NAMESPACE} 2>&1 >/dev/null
 if [ $? -eq 0 ]
 then
   echo "[v] Deployment for ${SERVICE} exists, updating container image to version ${VERSION}"
-  kubectl --namespace=${NAMESPACE} apply -f ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
+  minikube kubectl -- --namespace=${NAMESPACE} apply -f ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
 else
   echo "[v] Deployment for ${SERVICE} doesn't exist, creating deployment with container image version ${VERSION}"
-  kubectl --namespace=${NAMESPACE} create -f ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
+  minikube kubectl -- --namespace=${NAMESPACE} create -f ${DEPLOYMENT_CONFIG_PATH}/${SERVICE}-copy.yaml
 fi
 echo "[v] Finished deploying ${SERVICE}, version ${VERSION} to ${NAMESPACE}."
 
