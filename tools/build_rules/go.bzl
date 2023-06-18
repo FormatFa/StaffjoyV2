@@ -108,8 +108,11 @@ def _go_compile(ctx, pkg, srcs, archive, extra_packages=[]):
   cmd = "\n".join([
       'set -e',
       'export GOROOT="' + goroot + '"',
+       'export GOARCH=amd64',
+       'export GOOS=linux'
   ] + _construct_go_path(go_path, package_map) + [
       gotool.path + " tool compile " + ' '.join(args) + " -p " + pkg +
+      
       ' -complete -pack -o ' + archive.path + " " + '-trimpath "$PWD" ' +
       '-I "' + go_path + '" ' + cmd_helper.join_paths(" ", depset(srcs)),
   ])
@@ -270,6 +273,8 @@ def _link_binary(ctx, binary, archive, transitive_deps,
       'export GOROOT="' + goroot + '"',
       'export GOROOT_FINAL=/usr/local/go',
       'export PATH',
+      'export GOARCH=amd64',
+      'export GOOS=linux'
   ]
 
   tool_cmd = gotool.path + ' tool link '
@@ -302,6 +307,7 @@ def binary_struct(ctx, extra_runfiles=[]):
   )
 
 def _go_binary_impl(ctx):
+  
   gotool = ctx.file._go
 
   if len(ctx.files.srcs) == 0:
